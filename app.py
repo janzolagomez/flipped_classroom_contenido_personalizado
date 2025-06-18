@@ -16,23 +16,16 @@ Original file is located at
     https://colab.research.google.com/drive/15j8t3mVsIjXkNA5EitjMasoCo4WuUw7Z
 """
 
-# Commented out IPython magic to ensure Python compatibility.
-# %pip install streamlit
-
 import streamlit as st
 import pandas as pd
-import altair as alt  # Importar Altair para las visualizaciones
+import altair as alt
 
 # Define conceptos here so it is accessible to all parts of the script
 conceptos = ['FC_DEFINICION', 'FC_ROLES', 'FC_TECNOLOGIA', 'FC_APLICACION', 'FC_BENEFICIOS']
 
 # Cargar datos
-try:
-    contenido_df = pd.read_csv("contenido_tematico.csv")
-    estudiantes_df = pd.read_csv("estudiantes.csv")
-except FileNotFoundError:
-    st.error("Asegúrate de tener los archivos 'contenido_tematico.csv' y 'estudiantes.csv' en el mismo directorio que tu script.")
-    st.stop() # Detiene la ejecución si los archivos no se encuentran
+contenido_df = pd.read_csv("contenido_tematico.csv")
+estudiantes_df = pd.read_csv("estudiantes.csv")
 
 # Mapeo de niveles de conocimiento a niveles de dificultad
 nivel_map = {
@@ -50,7 +43,6 @@ def obtener_contenido(estudiante_id, concepto):
     nivel_conocimiento = estudiante[concepto].iloc[0]
     nivel_dificultad = nivel_map.get(nivel_conocimiento, "Básico")
 
-    # Filtrar contenido según el concepto y nivel de dificultad
     contenido = contenido_df[
         (contenido_df['ID_Concepto'] == concepto) &
         (contenido_df['NivelDificultad'] == nivel_dificultad)
@@ -67,9 +59,7 @@ def obtener_contenido(estudiante_id, concepto):
 st.title("Sistema de Aprendizaje Personalizado - Flipped Classroom")
 
 # Selección del estudiante
-estudiante_id = st.number_input("Ingresa tu ID de estudiante", min_value=1, step=1, key="student_id_input")
-
-# Si se ha introducido un ID de estudiante válido
+estudiante_id = st.number_input("Ingresa tu ID de estudiante", min_value=1, step=1)
 if estudiante_id:
     estudiante = estudiantes_df[estudiantes_df['id'] == estudiante_id]
     if not estudiante.empty:
@@ -77,31 +67,39 @@ if estudiante_id:
 
         # Mostrar nivel de conocimiento actual
         st.subheader("Tu nivel de conocimiento actual:")
-        
         niveles = []
         for concepto in conceptos:
             nivel_num = estudiante[concepto].iloc[0]
             nivel_texto = nivel_map.get(nivel_num, "Desconocido")
             niveles.append({"Concepto": concepto, "Nivel": nivel_texto, "Valor": nivel_num})
-            # ELIMINADA: st.write(f"{concepto}: {nivel_texto}")  # Esta línea es la que vas a quitar
+            # Eliminado: st.write(f"{concepto}: {nivel_texto}")  # No mostrar la lista de texto
 
-      # Convertir a DataFrame para Altair
+        # Convertir a DataFrame para Altair
         niveles_df = pd.DataFrame(niveles)
 
         # Crear gráfico de barras con Altair
         chart = alt.Chart(niveles_df).mark_bar().encode(
-            x=alt.X('Concepto:N', title='Concepto', sort=conceptos),  # Ordenar por lista de conceptos
+            x=alt.X('Concepto:N', title='Concepto', sort=conceptos),
             y=alt.Y('Valor:Q', title='Nivel de Conocimiento', scale=alt.Scale(domain=[0, 1])),
             color=alt.Color('Nivel:N', scale=alt.Scale(domain=['Básico', 'Intermedio', 'Avanzado'], range=['#ff9999', '#66b3ff', '#99ff99'])),
             tooltip=['Concepto', 'Nivel', 'Valor']
         ).properties(
-            width=600,
+            width='container',
             height=300,
-            title='Niveles de Conocimiento por Concepto'
+            title=alt.TitleParams(
+                text='Niveles de Conocimiento por Concepto',
+                anchor='middle',
+                offset=20,
+                fontSize=16
+            )
+        ).configure_title(
+            dy=-10
         )
 
-        # Mostrar el gráfico
+        # Mostrar el gráfico con espacio adicional
+        st.markdown("---")
         st.altair_chart(chart, use_container_width=True)
+        st.markdown("---")
 
         # Mostrar contenido personalizado
         st.subheader("Contenido personalizado para ti:")
@@ -109,12 +107,12 @@ if estudiante_id:
             with st.expander(f"Contenido para {concepto}"):
                 st.markdown(obtener_contenido(estudiante_id, concepto))
     else:
-        st.error("ID de estudiante no encontrado. Por favor, verifica el ID e inténtalo de nuevo.")
+        st.error("ID de estudiante no encontrado.")
 
 # Opcional: Formulario para actualizar nivel de conocimiento
 st.subheader("Actualizar nivel de conocimiento")
 with st.form("actualizar_conocimiento"):
-    estudiante_id_update = st.number_input("ID del estudiante a actualizar", min_value=1, step=1)
+    estudiante_id_update = st.number_input("ID del estudiante", min_value=1, step=1)
     concepto_update = st.selectbox("Concepto", conceptos)
     nuevo_nivel = st.selectbox("Nuevo nivel", [0.25, 0.55, 0.85], format_func=lambda x: nivel_map[x])
     submit = st.form_submit_button("Actualizar")
@@ -124,9 +122,6 @@ with st.form("actualizar_conocimiento"):
         if not idx.empty:
             estudiantes_df.loc[idx, concepto_update] = nuevo_nivel
             estudiantes_df.to_csv("estudiantes.csv", index=False)
-            st.success(f"Nivel de conocimiento para {concepto_update} del estudiante {estudiante_id_update} actualizado a {nivel_map[nuevo_nivel]}.")
-            # Opcional: Volver a mostrar los datos si el ID coincide con el mostrado actualmente
-            if estudiante_id_update == estudiante_id:
-                st.info("Por favor, vuelve a ingresar el ID del estudiante arriba para ver los cambios reflejados.")
+            st.success("Nivel de conocimiento actualizado.")
         else:
-            st.error("Estudiante no encontrado para la actualización.")
+            st.error("Estudiante no encontrado.")
