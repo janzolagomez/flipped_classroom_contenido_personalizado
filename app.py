@@ -88,20 +88,21 @@ if estudiante_id:
         # Convertir a DataFrame para Altair
         niveles_df = pd.DataFrame(niveles)
 
-        # Crear gráfico de barras con Altair
-        chart = alt.Chart(niveles_df).mark_bar().encode(
-            x=alt.X('Concepto:N', title='Concepto', sort=conceptos),  # Ordenar por lista de conceptos
-            y=alt.Y('Valor:Q', title='Nivel de Conocimiento', scale=alt.Scale(domain=[0, 1])),
-            color=alt.Color('Nivel:N', scale=alt.Scale(domain=['Básico', 'Intermedio', 'Avanzado'], range=['#ff9999', '#66b3ff', '#99ff99'])),
-            tooltip=['Concepto', 'Nivel', 'Valor']
-        ).properties(
-            width=600,
-            height=300,
-            title='Niveles de Conocimiento por Concepto'
-        )
+       # Crear gráfico de barras con Altair
+chart = alt.Chart(niveles_df).mark_bar().encode(
+    x=alt.X('Concepto:N', title='Concepto', sort=conceptos),
+    y=alt.Y('Valor:Q', title='Nivel de Conocimiento', scale=alt.Scale(domain=[0, 1])),
+    color=alt.Color('Nivel:N', scale=alt.Scale(domain=['Básico', 'Intermedio', 'Avanzado'], range=['#ff9999', '#66b3ff', '#99ff99'])),
+    tooltip=['Concepto', 'Nivel', 'Valor']
+).properties(
+    width=600,
+    height=300,
+    # ELIMINAR O COMENTAR ESTA LÍNEA:
+    # title='Niveles de Conocimiento por Concepto'
+)
 
-        # Mostrar el gráfico
-        st.altair_chart(chart, use_container_width=True)
+# Mostrar el gráfico
+st.altair_chart(chart, use_container_width=True)
 
         # Mostrar contenido personalizado
         st.subheader("Contenido personalizado para ti:")
