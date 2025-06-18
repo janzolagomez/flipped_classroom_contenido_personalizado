@@ -61,17 +61,7 @@ if estudiante_id:
     if not estudiante.empty:
         st.write(f"**Nombre del estudiante**: {estudiante['nombre'].iloc[0]}")
 
-        # Mostrar nivel de conocimiento actual
-        st.subheader("Tu nivel de conocimiento actual:")
-        # Crear un DataFrame para el gráfico de barras
-        niveles = []
-        for concepto in conceptos:
-            nivel_num = estudiante[concepto].iloc[0]
-            nivel_texto = nivel_map.get(nivel_num, "Desconocido")
-            niveles.append({"Concepto": concepto, "Nivel": nivel_texto, "Valor": nivel_num})
-            st.write(f"{concepto}: {nivel_texto}")  # Mantener la lista de texto
-
-        # Convertir a DataFrame para Altair
+               # Convertir a DataFrame para Altair
         niveles_df = pd.DataFrame(niveles)
 
         # Crear gráfico de barras con Altair
